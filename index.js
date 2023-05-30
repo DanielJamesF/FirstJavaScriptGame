@@ -44,7 +44,7 @@ const player = new Fighter({
   scale: 2.5,
   offset: {
     x: 215,
-    y: 156,
+    y: 157,
   },
   sprites: {
     idle: {
@@ -81,7 +81,7 @@ const player = new Fighter({
       x: 100,
       y: 50,
     },
-    width: 158,
+    width: 160,
     height: 50,
   },
 });
@@ -105,7 +105,7 @@ const enemy = new Fighter({
   scale: 2.5,
   offset: {
     x: 215,
-    y: 170,
+    y: 167,
   },
   sprites: {
     idle: {
@@ -139,10 +139,10 @@ const enemy = new Fighter({
   },
   attackBox: {
     offset: {
-      x: -180,
+      x: -170,
       y: 50,
     },
-    width: 158,
+    width: 170,
     height: 50,
   },
 });
@@ -156,16 +156,10 @@ const keys = {
   d: {
     pressed: false,
   },
-  w: {
-    pressed: false,
-  },
-  ArrowLeft: {
-    pressed: false,
-  },
   ArrowRight: {
     pressed: false,
   },
-  ArrowUp: {
+  ArrowLeft: {
     pressed: false,
   },
 };
@@ -178,6 +172,8 @@ function animate() {
   c.fillRect(0, 0, canvas.width, canvas.height);
   background.update();
   shop.update();
+  c.fillStyle = "rgba(255, 255, 255, 0.15)";
+  c.fillRect(0, 0, canvas.width, canvas.height);
   player.update();
   enemy.update();
 
@@ -185,6 +181,7 @@ function animate() {
   enemy.velocity.x = 0;
 
   // player movement
+
   if (keys.a.pressed && player.lastKey === "a") {
     player.velocity.x = -5;
     player.switchSprite("run");
@@ -202,7 +199,7 @@ function animate() {
     player.switchSprite("fall");
   }
 
-  // ememy movement
+  // Enemy movement
   if (keys.ArrowLeft.pressed && enemy.lastKey === "ArrowLeft") {
     enemy.velocity.x = -5;
     enemy.switchSprite("run");
@@ -212,6 +209,7 @@ function animate() {
   } else {
     enemy.switchSprite("idle");
   }
+
   // jumping
   if (enemy.velocity.y < 0) {
     enemy.switchSprite("jump");
@@ -219,15 +217,21 @@ function animate() {
     enemy.switchSprite("fall");
   }
 
-  // player detect for collision & enemy gets hit
+  // detect for collision & enemy gets hit
   if (
-    rectangularCollision({ rectangle1: player, rectangle2: enemy }) &&
+    rectangularCollision({
+      rectangle1: player,
+      rectangle2: enemy,
+    }) &&
     player.isAttacking &&
     player.framesCurrent === 4
   ) {
     enemy.takeHit();
     player.isAttacking = false;
-    document.querySelector("#enemyHealth").style.width = enemy.health + "%";
+
+    gsap.to("#enemyHealth", {
+      width: enemy.health + "%",
+    });
   }
 
   // if player misses
@@ -235,18 +239,24 @@ function animate() {
     player.isAttacking = false;
   }
 
-  // enemy detect for collision & player gets hit
+  // this is where our player gets hit
   if (
-    rectangularCollision({ rectangle1: enemy, rectangle2: player }) &&
+    rectangularCollision({
+      rectangle1: enemy,
+      rectangle2: player,
+    }) &&
     enemy.isAttacking &&
     enemy.framesCurrent === 2
   ) {
     player.takeHit();
     enemy.isAttacking = false;
-    document.querySelector("#playerHealth").style.width = player.health + "%";
+
+    gsap.to("#playerHealth", {
+      width: player.health + "%",
+    });
   }
 
-  // if enemy misses
+  // if player misses
   if (enemy.isAttacking && enemy.framesCurrent === 2) {
     enemy.isAttacking = false;
   }
@@ -271,13 +281,14 @@ window.addEventListener("keydown", (event) => {
         player.lastKey = "a";
         break;
       case "w":
-        player.velocity.y = -14;
+        player.velocity.y = -20;
         break;
       case " ":
         player.attack();
         break;
     }
   }
+
   if (!enemy.dead) {
     switch (event.key) {
       case "ArrowRight":
@@ -289,26 +300,23 @@ window.addEventListener("keydown", (event) => {
         enemy.lastKey = "ArrowLeft";
         break;
       case "ArrowUp":
-        enemy.velocity.y = -14;
+        enemy.velocity.y = -20;
         break;
       case "ArrowDown":
         enemy.attack();
+
         break;
     }
   }
 });
 
 window.addEventListener("keyup", (event) => {
-  // player keys
   switch (event.key) {
     case "d":
       keys.d.pressed = false;
       break;
     case "a":
       keys.a.pressed = false;
-      break;
-    case "w":
-      keys.w.pressed = false;
       break;
   }
 
@@ -320,9 +328,5 @@ window.addEventListener("keyup", (event) => {
     case "ArrowLeft":
       keys.ArrowLeft.pressed = false;
       break;
-    case "ArrowUp":
-      keys.ArrowUp.pressed = false;
-      break;
   }
-  console.log(event.key);
 });
